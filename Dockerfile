@@ -1,33 +1,28 @@
-# Stage 1: Build the app
-FROM node:20-alpine AS builder
+# Stage 1: Build the Vite app using Node
+FROM node:lts-alpine AS build
+
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+ENV NPM_CONFIG_FUND=false
 
 WORKDIR /app
 
-# Copy package.json and lock file first
-COPY package.json package-lock.json* ./
+COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the app
-COPY . .
-
-# Build the Vite app
+COPY . ./
 RUN npm run build
 
-# Stage 2: Serve with serve
-FROM node:20-alpine
+# Stage 2: Serve with Caddy
+FROM caddy:alpine
 
 WORKDIR /app
 
-# Install serve globally
-RUN npm install -g serve
+# Copy and format the Caddyfile
+COPY Caddyfile .
+RUN caddy fmt Caddyfile --overwrite
 
-# Copy the built app from the builder stage
-COPY --from=builder /app/dist ./dist
+# Copy built static files
+COPY --from=build /app/dist ./dist
 
-# Expose the port Railway expects
-EXPOSE 3000
-
-# Serve the app
-CMD ["serve", "-s", "dist", "-l", "3000"]
+# Run Caddy
+CMD ["caddy", "run", "--config", "Caddyfile", "--adapter", "caddyfile"]
