@@ -36,5 +36,8 @@ RUN caddy fmt Caddyfile --overwrite
 # Copy files to the container image.
 COPY --from=build /app/dist ./dist
 
+# ✅ Expose port for Railway
+EXPOSE 3000
+
 # Use Caddy to run/serve the app
 CMD ["caddy", "run", "--config", "Caddyfile", "--adapter", "caddyfile"]
