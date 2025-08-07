@@ -39,5 +39,6 @@ COPY --from=build /app/dist ./dist
 # ✅ Expose port for Railway
 EXPOSE 3000
 
-# Use Caddy to run/serve the app
-CMD ["caddy", "run", "--config", "Caddyfile", "--adapter", "caddyfile"]
+# ✅ Use Caddy to run/serve the app with logging
+CMD echo "🚀 Starting Vite app with Caddy on port ${PORT:-3000}" && \
+    caddy run --config Caddyfile --adapter caddyfile
